@@ -5,15 +5,16 @@
 
 int main ( int argc, char *argv[] )
 {
-  Node *root = generate_with_leaves(strdup("1"), strdup("2"), strdup("3"));
-  generate_leaves(root->right, strdup("4"), strdup("5"));
+  Node *root = generate_with_leaves(strdup("4321"), strdup("23212"), strdup("313"));
+  generate_leaves(root->left, strdup("1344"), strdup("4325"));
+  generate_leaves(root->right, strdup("6123"), strdup("723"));
   /*
    *    _1__
    *   |    |
    *   2   _3_
    *      |   |
    *      4   5
-  */
+   */
   print_tree(root);
   free_tree(root);
   return 0;
@@ -59,8 +60,13 @@ void print_tree_helper(Node *root, char **screen, int row, int col)
 
   if(root->right)
   {
-    int right_left = max(1, tree_width(root->right->left));
-    int right_col = col + data_len + right_left;
+    int right_left = tree_width(root->right->left);
+    int right_data_len = root->right->data ? strlen(root->right->data) : 1;
+    int right_col = col +  data_len + right_left;
+    if(right_data_len <= 1)
+    {
+      right_col++;
+    }
     print_tree_helper(root->right, screen, row + 2, right_col);
     for(int i = col + data_len; screen[row+1][i] != '|'; i++)
     {
