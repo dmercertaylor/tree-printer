@@ -5,7 +5,7 @@ int main ( int argc, char *argv[] )
   srand((unsigned) time(NULL));
   for(int i = 0; i < 4; i++)
   {
-    Node *root = generate_random_tree(i + 2, 5);
+    Node *root = generate_random_tree(i + 3, 5);
     print_tree(root);
     free_tree(root);
     printf("\n\n");
@@ -34,11 +34,25 @@ void print_tree(Node *root)
   print_screen(screen, height);
 }
 
+/*
+   _______4L_______
+  |                |
+34Yh_             _|
+     |           |
+     f______    _|
+            |  |
+         _6apL_a
+        |    |
+      l7xD   x
+*/
+
 void print_tree_helper(Node *root, char **screen, int row, int col, enum branch_direction dir)
 {
+  printf("%s, width: %d, col: %d\n", root->data, tree_width(root), col);
   char *data = (root->data[0] == '\0' || !root->data) ? "|" : root->data;
   int data_len = strlen(data);
   int lim_left = 0, lim_right = 0;
+
   if(root->left)
   {
     int left_right = tree_width(root->left->right);
@@ -65,12 +79,9 @@ void print_tree_helper(Node *root, char **screen, int row, int col, enum branch_
   }
 
   int offset = data_len / 2;
-  if(dir == left && data_len == 2) offset--;
-
   if(root->left && root->right)
   {
-    int center = (lim_left + lim_right) / 2;
-    int offset = data_len / 2;
+    int center = (lim_left + lim_right + 1) / 2;
     for(int i = 0; data[i] != '\0'; i++)
     {
       screen[row][center - offset + i] = data[i];
@@ -82,6 +93,7 @@ void print_tree_helper(Node *root, char **screen, int row, int col, enum branch_
   }
   else
   {
+    if(dir == left && data_len == 2) offset--;
     for(int i = 0; data[i] != '\0'; i++)
     {
       screen[row][col + i] = data[i];
@@ -121,9 +133,9 @@ void tree_height_helper(Node *root, int height, int *max_height)
 
 int tree_width(Node *root)
 {
-  if(root == NULL) return 0;
+  if(root == NULL) return 1;
   int data_len = root->data ? max(1, strlen(root->data)) : 1;
-  return max(2, data_len + tree_width(root->right) + tree_width(root->left));
+  return data_len + tree_width(root->right) + tree_width(root->left);
 }
 
 Node *generate_node(char * data)
