@@ -1,15 +1,15 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "tree-printer.h"
 
 int main ( int argc, char *argv[] )
 {
-  Node *root = generate_with_leaves(strdup("4321"), strdup("23212"), strdup("3"));
-  generate_leaves(root->left, strdup("1344"), strdup("4325"));
-  generate_leaves(root->right, strdup("3123"), strdup("71234"));
-  print_tree(root);
-  free_tree(root);
+  srand((unsigned) time(NULL));
+  for(int i = 0; i < 4; i++)
+  {
+    Node *root = generate_random_tree(i + 2, 5);
+    print_tree(root);
+    free_tree(root);
+    printf("\n\n");
+  }
   return 0;
 }
 
@@ -28,23 +28,22 @@ void print_tree(Node *root)
     screen[i][width] = '\0';
   }
 
-  print_tree_helper(root, screen, 0, tree_width(root->left));
+  print_tree_helper(root, screen, 0, tree_width(root->left), right);
 
   printf("width: %d, height: %d\n\n", width, height);
   print_screen(screen, height);
 }
 
-void print_tree_helper(Node *root, char **screen, int row, int col)
+void print_tree_helper(Node *root, char **screen, int row, int col, enum branch_direction dir)
 {
   char *data = (root->data[0] == '\0' || !root->data) ? "|" : root->data;
   int data_len = strlen(data);
-  printf("%s, %d\n", data, tree_width(root));
   if(root->left)
   {
     int left_right = tree_width(root->left->right);
     int left_data_len = root->left->data ? strlen(root->left->data) : 1;
     int left_col = col - max(2, left_data_len + left_right);
-    print_tree_helper(root->left, screen, row + 2, left_col);
+    print_tree_helper(root->left, screen, row + 2, left_col, left);
     for(int i = col; screen[row+1][i] != '|'; i--)
     {
       screen[row][i] = '_';
@@ -57,7 +56,7 @@ void print_tree_helper(Node *root, char **screen, int row, int col)
     int right_data_len = root->right->data ? strlen(root->right->data) : 1;
     int right_col = col + data_len + right_left;
     if(right_data_len <= 1 && right_left == 0) right_col++;
-    print_tree_helper(root->right, screen, row + 2, right_col);
+    print_tree_helper(root->right, screen, row + 2, right_col, right);
     for(int i = col + data_len; screen[row+1][i] != '|'; i++)
     {
       screen[row][i] = '_';
@@ -70,7 +69,9 @@ void print_tree_helper(Node *root, char **screen, int row, int col)
   }
   if(row > 0)
   {
-    screen[row - 1][col + (data_len / 2)] = '|';
+    int offset = data_len / 2;
+    if(dir == left && data_len == 2) offset--;
+    screen[row - 1][col + offset] = '|';
   }
 }
 
@@ -103,7 +104,7 @@ void tree_height_helper(Node *root, int height, int *max_height)
 int tree_width(Node *root)
 {
   if(root == NULL) return 0;
-  int data_len = root->data ? strlen(root->data) : 1;
+  int data_len = root->data ? max(1, strlen(root->data)) : 1;
   return max(2, data_len + tree_width(root->right) + tree_width(root->left));
 }
 
@@ -141,4 +142,49 @@ void free_tree(Node *root)
 int max(int a, int b)
 {
   return a > b ? a : b;
+}
+
+Node *generate_random_tree(int depth, int str_len)
+{
+  if(depth == 0) return NULL;
+  char *str = NULL;
+  if(depth > 1)
+  {
+    str = generate_random_str(rand() % str_len);
+  }
+  else
+  {
+    str = generate_random_str((rand() % (str_len - 1)) + 1);
+  }
+  Node *out = generate_node(str);
+  if(rand() % 4)
+  {
+    out->left = generate_random_tree(depth - 1, str_len);
+  }
+  if(rand() % 4)
+  {
+    out->right = generate_random_tree(depth - 1, str_len);
+  }
+  return out;
+}
+
+char *generate_random_str(int str_len)
+{
+  char *out = malloc(str_len + 1);
+  out[str_len] = '\0';
+  for(int i = 0; i < str_len; i++)
+  {
+    switch(rand() % 3)
+    {
+      case 0:
+        out[i] = rand() % 10 + '0';
+        break;
+      case 1:
+        out[i] = rand() % 26 + 'A';
+        break;
+      default:
+        out[i] = rand() % 26 + 'a';
+    }
+  }
+  return out;
 }
