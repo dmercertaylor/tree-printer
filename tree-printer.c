@@ -5,16 +5,9 @@
 
 int main ( int argc, char *argv[] )
 {
-  Node *root = generate_with_leaves(strdup("4321"), strdup("23212"), strdup("313"));
+  Node *root = generate_with_leaves(strdup("4321"), strdup("23212"), strdup("3"));
   generate_leaves(root->left, strdup("1344"), strdup("4325"));
-  generate_leaves(root->right, strdup("6123"), strdup("723"));
-  /*
-   *    _1__
-   *   |    |
-   *   2   _3_
-   *      |   |
-   *      4   5
-   */
+  generate_leaves(root->right, strdup("3123"), strdup("71234"));
   print_tree(root);
   free_tree(root);
   return 0;
@@ -45,12 +38,12 @@ void print_tree_helper(Node *root, char **screen, int row, int col)
 {
   char *data = (root->data[0] == '\0' || !root->data) ? "|" : root->data;
   int data_len = strlen(data);
-
+  printf("%s, %d\n", data, tree_width(root));
   if(root->left)
   {
-    int left_right = max(1, tree_width(root->left->right));
+    int left_right = tree_width(root->left->right);
     int left_data_len = root->left->data ? strlen(root->left->data) : 1;
-    int left_col = col - left_right - left_data_len;
+    int left_col = col - max(2, left_data_len + left_right);
     print_tree_helper(root->left, screen, row + 2, left_col);
     for(int i = col; screen[row+1][i] != '|'; i--)
     {
@@ -62,11 +55,8 @@ void print_tree_helper(Node *root, char **screen, int row, int col)
   {
     int right_left = tree_width(root->right->left);
     int right_data_len = root->right->data ? strlen(root->right->data) : 1;
-    int right_col = col +  data_len + right_left;
-    if(right_data_len <= 1)
-    {
-      right_col++;
-    }
+    int right_col = col + data_len + right_left;
+    if(right_data_len <= 1 && right_left == 0) right_col++;
     print_tree_helper(root->right, screen, row + 2, right_col);
     for(int i = col + data_len; screen[row+1][i] != '|'; i++)
     {
@@ -113,10 +103,8 @@ void tree_height_helper(Node *root, int height, int *max_height)
 int tree_width(Node *root)
 {
   if(root == NULL) return 0;
-  int data_len = strlen(root->data);
-  int len_left = root->left ? tree_width(root->left) : 0;
-  int len_right = root->right ? tree_width(root->right) : 0;
-  return max(2, data_len + len_right + len_left);
+  int data_len = root->data ? strlen(root->data) : 1;
+  return max(2, data_len + tree_width(root->right) + tree_width(root->left));
 }
 
 Node *generate_node(char * data)
