@@ -23,7 +23,67 @@ void print_tree(Node *root)
 {
   int width = tree_width(root);
   int height = tree_height(root);
+  char **screen = malloc(sizeof(char *) * height);
+  for(int i = 0; i < height; i++)
+  {
+    screen[i] = malloc(width + 1);
+    for(int j = 0; j < width; j++)
+    {
+      screen[i][j] = ' ';
+    }
+    screen[i][width] = '\0';
+  }
+
+  print_tree_helper(root, screen, 0, tree_width(root->left));
+
   printf("width: %d, height: %d\n\n", width, height);
+  print_screen(screen, height);
+}
+
+void print_tree_helper(Node *root, char **screen, int row, int col)
+{
+  char *data = (root->data[0] == '\0' || !root->data) ? "|" : root->data;
+  int data_len = strlen(data);
+
+  if(root->left)
+  {
+    int left_right = max(1, tree_width(root->left->right));
+    int left_data_len = root->left->data ? strlen(root->left->data) : 1;
+    int left_col = col - left_right - left_data_len;
+    print_tree_helper(root->left, screen, row + 2, left_col);
+    for(int i = col; screen[row+1][i] != '|'; i--)
+    {
+      screen[row][i] = '_';
+    }
+  }
+
+  if(root->right)
+  {
+    int right_left = max(1, tree_width(root->right->left));
+    int right_col = col + data_len + right_left;
+    print_tree_helper(root->right, screen, row + 2, right_col);
+    for(int i = col + data_len; screen[row+1][i] != '|'; i++)
+    {
+      screen[row][i] = '_';
+    }
+  }
+
+  for(int i = 0; data[i] != '\0'; i++)
+  {
+    screen[row][col + i] = data[i];
+  }
+  if(row > 0)
+  {
+    screen[row - 1][col + (data_len / 2)] = '|';
+  }
+}
+
+void print_screen(char **screen, int height)
+{
+  for(int i = 0; i < height; i++)
+  {
+    printf("%s\n", screen[i]);
+  }
 }
 
 int tree_height(Node *root)
