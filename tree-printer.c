@@ -38,40 +38,58 @@ void print_tree_helper(Node *root, char **screen, int row, int col, enum branch_
 {
   char *data = (root->data[0] == '\0' || !root->data) ? "|" : root->data;
   int data_len = strlen(data);
+  int lim_left = 0, lim_right = 0;
   if(root->left)
   {
     int left_right = tree_width(root->left->right);
-    int left_data_len = root->left->data ? strlen(root->left->data) : 1;
+    int left_data_len = root->left->data ? max(1, strlen(root->left->data)) : 1;
     int left_col = col - max(2, left_data_len + left_right);
     print_tree_helper(root->left, screen, row + 2, left_col, left);
-    for(int i = col; screen[row+1][i] != '|'; i--)
+    for(lim_left = col; screen[row+1][lim_left] != '|'; lim_left--)
     {
-      screen[row][i] = '_';
+      screen[row][lim_left] = '_';
     }
   }
 
   if(root->right)
   {
     int right_left = tree_width(root->right->left);
-    int right_data_len = root->right->data ? strlen(root->right->data) : 1;
+    int right_data_len = root->right->data ? max(1, strlen(root->right->data)) : 1;
     int right_col = col + data_len + right_left;
     if(right_data_len <= 1 && right_left == 0) right_col++;
     print_tree_helper(root->right, screen, row + 2, right_col, right);
-    for(int i = col + data_len; screen[row+1][i] != '|'; i++)
+    for(lim_right = col; screen[row+1][lim_right] != '|'; lim_right++)
     {
-      screen[row][i] = '_';
+      screen[row][lim_right] = '_';
     }
   }
 
-  for(int i = 0; data[i] != '\0'; i++)
+  int offset = data_len / 2;
+  if(dir == left && data_len == 2) offset--;
+
+  if(root->left && root->right)
   {
-    screen[row][col + i] = data[i];
-  }
-  if(row > 0)
-  {
+    int center = (lim_left + lim_right) / 2;
     int offset = data_len / 2;
-    if(dir == left && data_len == 2) offset--;
-    screen[row - 1][col + offset] = '|';
+    for(int i = 0; data[i] != '\0'; i++)
+    {
+      screen[row][center - offset + i] = data[i];
+    }
+    if(row > 0)
+    {
+      screen[row - 1][center] = '|';
+    }
+  }
+  else
+  {
+    for(int i = 0; data[i] != '\0'; i++)
+    {
+      screen[row][col + i] = data[i];
+    }
+    if(row > 0)
+    {
+      screen[row - 1][col + offset] = '|';
+    }
   }
 }
 
