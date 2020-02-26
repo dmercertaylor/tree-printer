@@ -3,13 +3,43 @@
 int main ( int argc, char *argv[] )
 {
   srand((unsigned) time(NULL));
-  for(int i = 0; i < 4; i++)
+
+  int depth;
+  if(argc < 2)
   {
-    Node *root = generate_random_tree(i + 3, 5);
-    print_tree(root);
-    free_tree(root);
-    printf("\n\n");
+    depth = (rand() % 5) + 1;
   }
+  else if (argc == 2)
+  {
+    for(char *c = argv[1]; *c != '\0'; c++)
+    {
+      if((*c < '0' || *c > '9') && *c != '-')
+      {
+        fprintf(stderr, "Depth must be a number\n");
+        return 1;
+      }
+    }
+    depth = atoi(argv[1]);
+    if(depth < 0)
+    {
+      depth *= -1;
+    }
+    if(depth == 0)
+    {
+      fprintf(stderr, "Depth must be at least 1\n");
+      return 1;
+    }
+  }
+  else
+  {
+    fprintf(stderr, "Usage: tree-printer [depth]\n");
+    return 1;
+  }
+  
+  Node *root = generate_random_tree(depth, 6);
+  print_tree(root);
+  free_tree(root);
+  printf("\n");
   return 0;
 }
 
@@ -32,23 +62,16 @@ void print_tree(Node *root)
 
   printf("width: %d, height: %d\n\n", width, height);
   print_screen(screen, height);
-}
 
-/*
-   _______4L_______
-  |                |
-34Yh_             _|
-     |           |
-     f______    _|
-            |  |
-         _6apL_a
-        |    |
-      l7xD   x
-*/
+  for(int i = 0; i < height; i++)
+  {
+    free(screen[i]);
+  }
+  free(screen);
+}
 
 void print_tree_helper(Node *root, char **screen, int row, int col, enum branch_direction dir)
 {
-  printf("%s, width: %d, col: %d\n", root->data, tree_width(root), col);
   char *data = (root->data[0] == '\0' || !root->data) ? "|" : root->data;
   int data_len = strlen(data);
   int lim_left = 0, lim_right = 0;
@@ -177,23 +200,22 @@ int max(int a, int b)
 Node *generate_random_tree(int depth, int str_len)
 {
   if(depth == 0) return NULL;
-  char *str = NULL;
-  if(depth > 1)
-  {
-    str = generate_random_str(rand() % str_len);
-  }
-  else
-  {
-    str = generate_random_str((rand() % (str_len - 1)) + 1);
-  }
-  Node *out = generate_node(str);
-  if(rand() % 4)
+  Node *out = generate_node(NULL);
+  if(rand() % 6)
   {
     out->left = generate_random_tree(depth - 1, str_len);
   }
-  if(rand() % 4)
+  if(rand() % 6)
   {
     out->right = generate_random_tree(depth - 1, str_len);
+  }
+  if(out->right || out->left)
+  {
+    out->data = generate_random_str(rand() % str_len);
+  }
+  else
+  {
+    out->data = generate_random_str((rand() % (str_len - 1)) + 2);
   }
   return out;
 }
